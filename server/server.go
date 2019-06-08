@@ -46,12 +46,15 @@ func receive(conn net.Conn) {
 	scanner := bufio.NewScanner(conn)
 	scanner.Scan()
 	client := NewClient(scanner.Text(), conn)
+	defer client.Close()
 	entrance <- client
+	message <- NewMessage(client.GetName()+" enter", "server")
 	for scanner.Scan() {
 		logs.Debug("recv:", scanner.Text())
 		message <- NewMessage(scanner.Text(), client.GetName())
 	}
 	exit <- client
+	message <- NewMessage(client.GetName()+" exit", "server")
 }
 
 func handleChan() {
@@ -62,12 +65,9 @@ func handleChan() {
 			logs.Info(msg.Content, "published")
 		case client := <-entrance:
 			clients.PushBack(client)
-			message <- NewMessage(client.GetName()+" enter", "server")
-			logs.Info(client.GetName(), "entrance")
+			logs.Info(client.GetName(), "enter")
 		case client := <-exit:
 			lists.Remove(clients, client)
-			message <- NewMessage(client.GetName()+" exit", "server")
-			client.Close()
 			logs.Info(client.GetName(), "exit")
 		}
 	}

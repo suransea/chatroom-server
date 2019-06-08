@@ -6,37 +6,47 @@ import (
 	"net"
 )
 
-type Client struct {
-	Name string
-	Conn net.Conn
-	Chan chan string
+type Client interface {
+	GetName() string
+	Send(content string)
+	Close()
 }
 
-func NewClient(name string, conn net.Conn) *Client {
-	client := new(Client)
-	client.Name = name
-	client.Conn = conn
-	client.Chan = make(chan string)
-	go client.handleChan()
-	return client
+type client struct {
+	name string
+	conn net.Conn
+	send chan string
 }
 
-func (c *Client) Send(content string) {
-	c.Chan <- content
+func NewClient(name string, conn net.Conn) Client {
+	c := new(client)
+	c.name = name
+	c.conn = conn
+	c.send = make(chan string)
+	go handleSend(c)
+	return c
 }
 
-func (c *Client) Close() {
-	c.Conn.Close()
-	close(c.Chan)
+func (c *client) GetName() string {
+	return c.name
 }
 
-func (c *Client) handleChan() {
-	for content := range c.Chan {
-		n, err := fmt.Fprintln(c.Conn, content)
+func (c *client) Send(content string) {
+	c.send <- content
+}
+
+func (c *client) Close() {
+	c.conn.Close()
+	close(c.send)
+}
+
+func handleSend(c *client) {
+	for content := range c.send {
+		n, err := fmt.Fprintln(c.conn, content)
 		if err != nil {
 			logs.Error(err)
 		}
-		logs.Debug("send", n, "bytes to", c.Conn.RemoteAddr())
-		logs.Info("send", content, "to", c.Name)
+		logs.Debug("send", n, "bytes to", c.conn.RemoteAddr())
+		logs.Info("send", content, "to", c.name)
 	}
 }

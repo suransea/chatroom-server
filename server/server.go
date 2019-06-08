@@ -13,8 +13,8 @@ import (
 var (
 	clients  = list.New()
 	message  = make(chan *Message)
-	entrance = make(chan *Client)
-	exit     = make(chan *Client)
+	entrance = make(chan Client)
+	exit     = make(chan Client)
 )
 
 func Start(port uint16) {
@@ -49,7 +49,7 @@ func receive(conn net.Conn) {
 	entrance <- client
 	for scanner.Scan() {
 		logs.Debug("recv:", scanner.Text())
-		message <- NewMessage(scanner.Text(), client.Name)
+		message <- NewMessage(scanner.Text(), client.GetName())
 	}
 	exit <- client
 }
@@ -62,13 +62,13 @@ func handleChan() {
 			logs.Info(msg.Content, "published")
 		case client := <-entrance:
 			clients.PushBack(client)
-			message <- NewMessage(client.Name+" enter", "server")
-			logs.Info(client.Name, "entrance")
+			message <- NewMessage(client.GetName()+" enter", "server")
+			logs.Info(client.GetName(), "entrance")
 		case client := <-exit:
 			lists.Remove(clients, client)
-			message <- NewMessage(client.Name+" exit", "server")
+			message <- NewMessage(client.GetName()+" exit", "server")
 			client.Close()
-			logs.Info(client.Name, "exit")
+			logs.Info(client.GetName(), "exit")
 		}
 	}
 }

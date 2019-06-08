@@ -6,8 +6,8 @@ type Message struct {
 }
 
 func NewMessage(content string, sender string) *Message {
-	msg := new(Message)
-	msg.Content = content
-	msg.Sender = sender
-	return msg
+	m := new(Message)
+	m.Content = content
+	m.Sender = sender
+	return m
 }

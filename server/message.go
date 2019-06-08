@@ -11,10 +11,3 @@ func NewMessage(content string, sender string) *Message {
 	msg.Sender = sender
 	return msg
 }
-
-func Publish(msg *Message) {
-	for e := clients.Front(); e != nil; e = e.Next() {
-		str := msg.Sender + ": " + msg.Content
-		e.Value.(*Client).ch <- str
-	}
-}

@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"chatroom-server/lists"
 	"chatroom-server/logs"
 	"container/list"
 	"fmt"
@@ -22,7 +23,7 @@ func Start(port uint16) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	go handleEvent()
+	go handleChan()
 	logs.Info("server started on port", port)
 	defer listener.Close()
 	for {
@@ -47,27 +48,27 @@ func receive(conn net.Conn) {
 	client := NewClient(scanner.Text(), conn)
 	entrance <- client
 	for scanner.Scan() {
-		message <- NewMessage(scanner.Text(), client.name)
+		logs.Debug("recv:", scanner.Text())
+		message <- NewMessage(scanner.Text(), client.Name)
 	}
 	exit <- client
 }
 
-func handleEvent() {
+func handleChan() {
 	for {
 		select {
 		case msg := <-message:
-			Publish(msg)
+			Publish(msg, clients)
 			logs.Info(msg.Content, "published")
 		case client := <-entrance:
 			clients.PushBack(client)
-			message <- NewMessage(client.name+" enter", "server")
-			client.ch <- "connect success"
-			logs.Info(client.name, "entrance")
+			message <- NewMessage(client.Name+" enter", "server")
+			logs.Info(client.Name, "entrance")
 		case client := <-exit:
-			Remove(clients, client)
-			message <- NewMessage(client.name+" exit", "server")
+			lists.Remove(clients, client)
+			message <- NewMessage(client.Name+" exit", "server")
 			client.Close()
-			logs.Info(client.name, "exit")
+			logs.Info(client.Name, "exit")
 		}
 	}
 }

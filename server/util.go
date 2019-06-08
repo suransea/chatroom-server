@@ -2,11 +2,9 @@ package server
 
 import "container/list"
 
-func Remove(list *list.List, element interface{}) {
-	for e := list.Front(); e != nil; e = e.Next() {
-		if e.Value == element {
-			list.Remove(e)
-			break
-		}
+func Publish(msg *Message, clients *list.List) {
+	for e := clients.Front(); e != nil; e = e.Next() {
+		str := msg.Sender + ": " + msg.Content
+		e.Value.(*Client).Send(str)
 	}
 }

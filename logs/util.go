@@ -17,6 +17,6 @@ func NewErrorLogger() *log.Logger {
 	return log.New(os.Stderr, "[Error] ", log.LstdFlags|log.Lmicroseconds)
 }
 
-func NewLogger() (*log.Logger, *log.Logger, *log.Logger) {
+func NewLogger() (info *log.Logger, debug *log.Logger, error *log.Logger) {
 	return NewInfoLogger(), NewDebugLogger(), NewErrorLogger()
 }

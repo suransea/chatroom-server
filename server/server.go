@@ -48,13 +48,13 @@ func receive(conn net.Conn) {
 	client := NewClient(scanner.Text(), conn)
 	defer client.Close()
 	entrance <- client
-	message <- NewMessage(client.GetName()+" enter", "server")
+	message <- &Message{Content: client.GetName() + " enter", Sender: "server"}
 	for scanner.Scan() {
 		logs.Debug("recv:", scanner.Text())
-		message <- NewMessage(scanner.Text(), client.GetName())
+		message <- &Message{Content: scanner.Text(), Sender: client.GetName()}
 	}
 	exit <- client
-	message <- NewMessage(client.GetName()+" exit", "server")
+	message <- &Message{Content: client.GetName() + " exit", Sender: "server"}
 }
 
 func handleChan() {

@@ -19,10 +19,11 @@ type client struct {
 }
 
 func NewClient(name string, conn net.Conn) Client {
-	c := new(client)
-	c.name = name
-	c.conn = conn
-	c.send = make(chan string)
+	c := &client{
+		name: name,
+		conn: conn,
+		send: make(chan string),
+	}
 	go handleSend(c)
 	return c
 }
